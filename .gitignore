@@ -19,4 +19,4 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
-hide
+hide/
