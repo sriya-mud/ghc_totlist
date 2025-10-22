@@ -119,7 +119,7 @@
     <!-- Finance Returns -->
     <h2>📈 Finance Top Gainers & Losers</h2>
 
-    {% for period, result in stock_data.items %}
+    {% for period, result in stock_data.values %}
     <h4>{{ period }}</h4>
     <table class="finance-table table table-striped">
         <thead>
