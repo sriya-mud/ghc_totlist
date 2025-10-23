@@ -117,74 +117,60 @@
     </table>
 
     <!-- Finance Returns -->
-    <h2>📈 Finance Top Gainers & Losers</h2>
+   <h2>📈 Finance Top Gainers & Losers</h2>
 
     {% for period, result in stock_data.items %}
-    <h4>{{ period }}</h4>
-    <table class="finance-table table table-striped">
-        <thead>
-            <tr>
-                <th colspan="2">Top Gainers</th>
-                <th colspan="2">Top Losers</th>
-            </tr>
-            <tr>
-                <th>Ticker</th>
-                <th>Value (%)</th>
-                <th>Ticker</th>
-                <th>Value (%)</th>
-            </tr>
-        </thead>
-        <!--tbody>
-            {% for i in range_10 %}
-            <tr>
-                {% if result.top_gainers|length > i %}
-                    <td>{{ result.top_gainers.i.0 }}</td>
-                    <td class="{% if result.top_gainers.i.1 >= 0 %}positive{% else %}negative{% endif %}">
-                        {{ result.top_gainers.i.1|floatformat:2 }}
-                    </td>
-                {% else %}
-                    <td></td><td></td>
-                {% endif %}
+        <div class="period-header">
+            <h4>{{ period }}</h4>
+        </div>
 
-                {% if result.top_losers|length > i %}
-                    <td>{{ result.top_losers.i.0 }}</td>
-                    <td class="{% if result.top_losers.i.1 >= 0 %}positive{% else %}negative{% endif %}">
-                        {{ result.top_losers.i.1|floatformat:2 }}
-                    </td>
-                {% else %}
-                    <td></td><td></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody-->
-        <tbody>
-        {% for i in range_10 %}
-        <tr>
-            {# --- Top Gainers --- #}
-            {% if result.top_gainers|length > i %}
-                {% with g=result.top_gainers|slice:i|last %}
-                    <th class="{% if g.1 >= 0 %}positive{% else %}negative{% endif %}">
-                        {{ g.0 }} ({{ g.1|floatformat:2 }}%)
-                    </th>
-                {% endwith %}
-            {% else %}
-                <th></th>
-            {% endif %}
+        <table class="finance-table">
+            <thead>
+                <tr>
+                    <th colspan="2">Top Gainers</th>
+                    <th colspan="2">Top Losers</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value (%)</th>
+                    <th>Ticker</th>
+                    <th>Value (%)</th>
+                </tr>
+            </thead>
 
-            {# --- Top Losers --- #}
-            {% if result.top_losers|length > i %}
-                {% with l=result.top_losers|slice:i|last %}
-                    <th class="{% if l.1 >= 0 %}positive{% else %}negative{% endif %}">
-                        {{ l.0 }} ({{ l.1|floatformat:2 }}%)
-                    </th>
-                {% endwith %}
-            {% else %}
-                <th></th>
-            {% endif %}
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            <tbody>
+                {% for i in range_10 %}
+                <tr>
+                    {# --- Top Gainers --- #}
+                    {% if result.top_gainers|length > i %}
+                        {% with g=result.top_gainers|slice:i|last %}
+                            <td>{{ g.0 }}</td>
+                            <td class="{% if g.1 >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ g.1|floatformat:2 }}%
+                            </td>
+                        {% endwith %}
+                    {% else %}
+                        <td></td>
+                        <td></td>
+                    {% endif %}
+
+                    {# --- Top Losers --- #}
+                    {% if result.top_losers|length > i %}
+                        {% with l=result.top_losers|slice:i|last %}
+                            <td>{{ l.0 }}</td>
+                            <td class="{% if l.1 >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ l.1|floatformat:2 }}%
+                            </td>
+                        {% endwith %}
+                    {% else %}
+                        <td></td>
+                        <td></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
 </div>
 </body>
 </html>
