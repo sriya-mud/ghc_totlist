@@ -4,6 +4,12 @@ from .forms import TaskForm
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .utils import get_finance_data
+from itertools import zip_longest
+import csv
+import os
+from django.conf import settings
+
+
 
 def index(request):
     tasks = Task.objects.all()
@@ -18,12 +24,60 @@ def index(request):
 
     for data in stock_data.values():
         data["top_gainers"] = list(data["top_gainers"])
-        data["top_losers"] =  list(data["top_losers"])
+        data["top_losers"] =  sorted(data["top_losers"], key=lambda x: x[1])
+        data["gainers_losers"] = list(zip_longest(data["top_gainers"], data["top_losers"]))
+    
+
+    # Read CSV for Data Analysis Tab
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
+
+    print("CSV Path:", csv_path)
+    csv_exists = os.path.exists(csv_path)
+
+    task_data = {
+    "task1": {"labels": [], "values": []},
+    "task2": {"labels": [], "values": []},
+    "task3": {"points": []}
+    }
+
+    if os.path.exists(csv_path):
+        with open(csv_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                task = (row.get('task') or '').strip()
+                if not task:
+                    continue
+
+                if task in ['task1', 'task2']:
+                    category = (row.get('category') or '').strip()
+                    value_str = (row.get('value') or '').strip()
+                    if category and value_str:
+                        try:
+                            value = float(value_str)
+                            task_data[task]["labels"].append(category)
+                            task_data[task]["values"].append(value)
+                        except ValueError:
+                            continue
+
+                elif task == 'task3':
+                    x_str = (row.get('x') or '').strip()
+                    y_str = (row.get('y') or '').strip()
+                    if x_str and y_str:
+                        try:
+                            x, y = float(x_str), float(y_str)
+                            task_data['task3']["points"].append({"x": x, "y": y})
+                        except ValueError:
+                            continue
+
+
     context = {
         'form': form,
         'tasks': tasks,
         'stock_data': stock_data,
-        "range_10": range(10)
+        "range_10": range(10),
+        'task_data': task_data,
+        'csv_path': csv_path,
+        'csv_exists': csv_exists
     }
 
     return render(request, 'todoapp/index.html',context)
