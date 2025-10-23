@@ -119,7 +119,7 @@
     <!-- Finance Returns -->
     <h2>📈 Finance Top Gainers & Losers</h2>
 
-    {% for period, result in stock_data.values %}
+    {% for period, result in stock_data.items %}
     <h4>{{ period }}</h4>
     <table class="finance-table table table-striped">
         <thead>
@@ -134,7 +134,7 @@
                 <th>Value (%)</th>
             </tr>
         </thead>
-        <tbody>
+        <!--tbody>
             {% for i in range_10 %}
             <tr>
                 {% if result.top_gainers|length > i %}
@@ -156,9 +156,35 @@
                 {% endif %}
             </tr>
             {% endfor %}
+        </tbody-->
+        <tbody>
+        {% for i in range_10 %}
+        <tr>
+            {# --- Top Gainers --- #}
+            {% if result.top_gainers|length > i %}
+                {% with g=result.top_gainers|slice:i|last %}
+                    <th class="{% if g.1 >= 0 %}positive{% else %}negative{% endif %}">
+                        {{ g.0 }} ({{ g.1|floatformat:2 }}%)
+                    </th>
+                {% endwith %}
+            {% else %}
+                <th></th>
+            {% endif %}
+
+            {# --- Top Losers --- #}
+            {% if result.top_losers|length > i %}
+                {% with l=result.top_losers|slice:i|last %}
+                    <th class="{% if l.1 >= 0 %}positive{% else %}negative{% endif %}">
+                        {{ l.0 }} ({{ l.1|floatformat:2 }}%)
+                    </th>
+                {% endwith %}
+            {% else %}
+                <th></th>
+            {% endif %}
+        </tr>
+        {% endfor %}
         </tbody>
     </table>
-    {% endfor %}
 </div>
 </body>
 </html>
