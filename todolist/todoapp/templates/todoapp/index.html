@@ -72,10 +72,10 @@
       .btn-update { background-color: #28a745; color: white; }
       .btn-update:hover { background-color: #218838; color: white; }
       table.finance-table { border-collapse: collapse; margin-bottom: 30px; }
-      table.finance-table th, table.finance-table td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+      table.finance-table th, table.finance-table td { border: 1px solid #ccc; padding: 12px; text-align: center; }
       table.finance-table th { background-color: #f4f4f4; }
-      .positive { color: green; }
-      .negative { color: red; }
+      .finance-table td.positive { color: green; font-weight: bold; }
+      .finance-table td.negative { color: red; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -124,7 +124,7 @@
             <h4>{{ period }}</h4>
         </div>
 
-        <table class="finance-table">
+        <table class="finance-table table table-striped">
             <thead>
                 <tr>
                     <th colspan="2">Top Gainers</th>
