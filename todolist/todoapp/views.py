@@ -8,7 +8,16 @@ from itertools import zip_longest
 import csv
 import os
 from django.conf import settings
+import pandas as pd
 
+def stock_data_analysis_1(tasK_stock_data):
+    pass
+
+def stock_data_analysis_2(tasK_stock_data):
+    pass
+
+def stock_data_analysis_3(tasK_stock_data):
+    pass
 
 
 def index(request):
@@ -29,7 +38,7 @@ def index(request):
     
 
     # Read CSV for Data Analysis Tab
-    """csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
 
     print("CSV Path:", csv_path)
     csv_exists = os.path.exists(csv_path)
@@ -41,33 +50,14 @@ def index(request):
     }
 
     if os.path.exists(csv_path):
-        with open(csv_path, newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                task = (row.get('task') or '').strip()
-                if not task:
-                    continue
+        tasK_stock_data = pd.read_csv(csv_path)
+        # print("CSV Data Loaded Successfully")
+    
+    #Function 1 call
 
-                if task in ['task1', 'task2']:
-                    category = (row.get('category') or '').strip()
-                    value_str = (row.get('value') or '').strip()
-                    if category and value_str:
-                        try:
-                            value = float(value_str)
-                            task_data[task]["labels"].append(category)
-                            task_data[task]["values"].append(value)
-                        except ValueError:
-                            continue
+    #Function 2 call
 
-                elif task == 'task3':
-                    x_str = (row.get('x') or '').strip()
-                    y_str = (row.get('y') or '').strip()
-                    if x_str and y_str:
-                        try:
-                            x, y = float(x_str), float(y_str)
-                            task_data['task3']["points"].append({"x": x, "y": y})
-                        except ValueError:
-                            continue"""
+    #Function 3 call
 
 
     context = {
@@ -75,7 +65,14 @@ def index(request):
         'tasks': tasks,
         'stock_data': stock_data,
         "range_10": range(10),
+        "task_data": tasK_stock_data,
+        #1st Function data
+
+        #2nd Function data
+
+        #3rd Function data
     }
+    # print("Context Data:", context)
 
     return render(request, 'todoapp/index.html',context)
 
