@@ -29,7 +29,7 @@ def index(request):
     
 
     # Read CSV for Data Analysis Tab
-    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
+    """csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
 
     print("CSV Path:", csv_path)
     csv_exists = os.path.exists(csv_path)
@@ -67,7 +67,7 @@ def index(request):
                             x, y = float(x_str), float(y_str)
                             task_data['task3']["points"].append({"x": x, "y": y})
                         except ValueError:
-                            continue
+                            continue"""
 
 
     context = {
@@ -75,9 +75,6 @@ def index(request):
         'tasks': tasks,
         'stock_data': stock_data,
         "range_10": range(10),
-        'task_data': task_data,
-        'csv_path': csv_path,
-        'csv_exists': csv_exists
     }
 
     return render(request, 'todoapp/index.html',context)
