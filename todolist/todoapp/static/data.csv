@@ -1,15 +1,15 @@
 
 task,category,value,x,y
 task1,Jan,12,,
-task1,Feb,18,,
-task1,Mar,25,,
+task1,Feb,15,,
+task1,Mar,18,,
 task1,Apr,20,,
-task1,May,27,,
-task1,Jun,30,,
+task1,May,23,,
+task1,Jun,25,,
 task1,Jul,28,,
-task1,Aug,35,,
-task1,Sep,31,,
-task1,Oct,40,,
+task1,Aug,30,,
+task1,Sep,33,,
+task1,Oct,35,,
 
 task2,Product A,50,,
 task2,Product B,65,,

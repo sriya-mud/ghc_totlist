@@ -5,19 +5,65 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .utils import get_finance_data
 from itertools import zip_longest
-import csv
 import os
 from django.conf import settings
 import pandas as pd
 
-def stock_data_analysis_1(tasK_stock_data):
-    pass
+def stock_data_analysis_1():
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'combined_nifty.csv')
+    print("CSV Path (Analysis 1):", csv_path)
 
-def stock_data_analysis_2(tasK_stock_data):
-    pass
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        print(df.head(40))
 
-def stock_data_analysis_3(tasK_stock_data):
-    pass
+        df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
+        ma_column = '7-Day MA' if '7-Day MA' in df.columns else 'MA7'
+        if ma_column not in df.columns:
+            df[ma_column] = None
+        
+        df = df.dropna(subset=['Date', 'Close',ma_column])
+
+        return {
+            "labels": df['Date'].dt.strftime('%Y-%m-%d').tolist(),
+            "close_values": df['Close'].tolist(),
+            "ma_values": df[ma_column].tolist()
+        }
+
+    return {"labels": [], "close_values": [], "ma_values": []}
+
+
+def stock_data_analysis_2():
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'MSFT_combined.csv')
+    print("CSV Path (Analysis 2):", csv_path)
+
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        print(df.head(40))
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df = df.dropna(subset=['Date', 'Diff'])
+        return {
+            "labels": df['Date'].dt.strftime('%Y-%m-%d').tolist(),
+            "values": df['Diff'].tolist()
+        }
+
+    return {"labels": [], "values": []}
+
+
+def stock_data_analysis_3():
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
+    print("CSV Path (Analysis 3):", csv_path)
+
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        print(df.head(35))
+        df = df.dropna(subset=['x', 'y'])
+        return {
+            "points": [{"x": float(x), "y": float(y)} for x, y in zip(df['x'], df['y'])]
+        }
+
+    return {"points": []}
+
 
 
 def index(request):
@@ -38,39 +84,36 @@ def index(request):
     
 
     # Read CSV for Data Analysis Tab
-    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
+   
 
-    print("CSV Path:", csv_path)
-    csv_exists = os.path.exists(csv_path)
+    #print("CSV Path:", csv_path)
+    #csv_exists = os.path.exists(csv_path)
 
-    task_data = {
-    "task1": {"labels": [], "values": []},
-    "task2": {"labels": [], "values": []},
-    "task3": {"points": []}
-    }
+    #task_data = {
+    #"task1": {"labels": [], "values": []},
+    #"task2": {"labels": [], "values": []},
+    #"task3": {"points": []}
+    #}
 
-    if os.path.exists(csv_path):
-        tasK_stock_data = pd.read_csv(csv_path)
+    #if os.path.exists(csv_path):
+        #task_stock_data = pd.read_csv(csv_path)
         # print("CSV Data Loaded Successfully")
     
-    #Function 1 call
-
-    #Function 2 call
-
-    #Function 3 call
-
+    #Function 1,2,3 calls
+    analysis1_data = stock_data_analysis_1()
+    analysis2_data = stock_data_analysis_2()
+    analysis3_data = stock_data_analysis_3()
 
     context = {
         'form': form,
         'tasks': tasks,
         'stock_data': stock_data,
         "range_10": range(10),
-        "task_data": tasK_stock_data,
-        #1st Function data
-
-        #2nd Function data
-
-        #3rd Function data
+        #"task_data": task_stock_data,
+        #"csv_exists": csv_exists,
+        "analysis1_data": analysis1_data,
+        "analysis2_data": analysis2_data,
+        "analysis3_data": analysis3_data,
     }
     # print("Context Data:", context)
 

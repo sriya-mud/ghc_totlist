@@ -213,6 +213,125 @@
     }
 }
 
+/* =======================
+   Graphs Tab Styling
+======================= */
+
+/* Main Graphs Section — aligned same as Data Analysis tab */
+#graphs {
+    margin-top: 0 !important;      /* ensures no top gap */
+    padding: 30px 40px 40px 40px;  /* top, right, bottom, left */
+    background-color: #f8f9fa;     /* consistent background */
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+
+/* Heading */
+#graphs h3 {
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 25px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+/* Dropdown Wrapper (centered) */
+.graph-select-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+/* Dropdown */
+#graphSelect {
+    font-size: 1rem;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#graphSelect:hover,
+#graphSelect:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0,123,255,0.4);
+    outline: none;
+}
+
+/* Graph Container */
+#graphContainer {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* Canvas inside graph container */
+#graphContainer canvas {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 10px;
+}
+
+/* Subtle hover effect */
+#graphContainer:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+/* Info alert (e.g., "Select a graph type") */
+#graphs .alert-info {
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 12px 15px;
+}
+
+/* Ensure Graphs tab touches navbar */
+.navbar {
+    margin-bottom: 0 !important;
+}
+
+.tab-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+#graphs.tab-pane {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #graphs {
+        padding: 20px;
+    }
+
+    #graphSelect {
+        width: 100%;
+    }
+
+    #graphContainer {
+        max-width: 100%;
+        padding: 12px;
+    }
+}
+
   </style>
 </head>
 <body>
@@ -229,6 +348,9 @@
         </li>
         <li class="nav-item" role="presentation">
         <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab">Data Analysis</button>
+        </li>
+        <li class="nav-item" role="presentation">
+        <button class="nav-link" id="graphs-tab" data-bs-toggle="tab" data-bs-target="#graphs" type="button" role="tab">Graphs</button>
         </li>
     </ul>
 
@@ -311,8 +433,7 @@
                 </table>
             {% endfor %}
         </div>
-    </div>
-   
+    
     <!--Data analysis tab-->
 
 <div class="tab-pane fade" id="data" role="tabpanel">
@@ -393,11 +514,31 @@
   <!-- Chart -->
   <canvas id="taskChart" height="150"></canvas>
    </div>
+
+
+<!-- Graphs Tab -->
+<div class="tab-pane fade" id="graphs" role="tabpanel">
+
+  <div class="graph-select-wrapper">
+      <select id="graphSelect" class="form-select w-25 mx-auto">
+          <option value="" selected disabled>Select Graph</option>
+          <option value="graph1">Graph 1 </option>
+          <option value="graph2">Graph 2 </option>
+          <option value="graph3">Graph 3 </option>
+      </select>
+  </div>
+
+  <div id="graphContainer" class="table-responsive">
+      <canvas id="graphChart" height="150"></canvas>
+  </div>
+  </div>
+  </div>
 </div>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Data Analysis Tab Script -->
 <script>
 let chartInstance = null;
 
@@ -473,6 +614,131 @@ document.getElementById('taskSelect').addEventListener('change', function() {
   chartInstance = new Chart(document.getElementById('taskChart'), { type, data, options });
 });
 </script>
+
+<!-- Graphs Tab Script -->
+{{ analysis1_data|json_script:"analysis1-data" }}
+{{ analysis2_data|json_script:"analysis2-data" }}
+{{ analysis3_data|json_script:"analysis3-data" }}
+
+<script>
+let graphChartInstance = null;
+
+// Load JSON data safely
+let analysis1Data = {};
+let analysis2Data = {};
+let analysis3Data = {};
+
+try {
+    analysis1Data = JSON.parse(document.getElementById('analysis1-data').textContent);
+} catch (e) { console.error("Error parsing analysis1Data:", e); }
+
+try {
+    analysis2Data = JSON.parse(document.getElementById('analysis2-data').textContent);
+} catch (e) { console.error("Error parsing analysis2Data:", e); }
+
+try {
+    analysis3Data = JSON.parse(document.getElementById('analysis3-data').textContent);
+} catch (e) { console.error("Error parsing analysis3Data:", e); }
+
+document.getElementById('graphSelect').addEventListener('change', function() {
+    const graph = this.value;
+
+    if (graphChartInstance) graphChartInstance.destroy();
+
+    let type, data, options = {};
+
+    // GRAPH 1 — Close vs 7-Day MA
+    if (graph === 'graph1') {
+    type = 'line';
+    data = {
+        labels: analysis1Data.labels,
+        datasets: [
+            {
+                label: 'Close Price',
+                data: analysis1Data.close_values,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0,0,255,0.15)',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: '7-Day Moving Average',
+                data: analysis1Data.ma_values,
+                borderColor: 'orange',
+                backgroundColor: 'rgba(255,165,0,0.2)',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.3
+            }
+           
+        ]
+    };
+    options = {
+        plugins: { title: { display: true, text: 'Stock Close vs 7-Day MA' } },
+        scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: 'Price' } }
+        }
+    };
+}
+
+    // GRAPH 2 — MSFT Diff
+    else if (graph === 'graph2') {
+        type = 'bar';
+        const barColors = analysis2Data.values.map(v => v >= 0 ? 'green' : 'red');
+        data = {
+            labels: analysis2Data.labels,
+            datasets: [{
+                label: 'MSFT Diff',
+                data: analysis2Data.values,
+                backgroundColor: barColors
+            }]
+        };
+        options = {
+        plugins: {
+            title: { display: true, text: 'MSFT Daily Diff' }
+        },
+        scales: {
+            y: {
+                title: { display: true, text: 'Difference' },
+                beginAtZero: true
+            },
+            x: {
+                title: { display: true, text: 'Date' }
+            }
+        }
+    };
+    }
+
+    // 🟨 GRAPH 3 — Scatter Plot
+    else if (graph === 'graph3') {
+        type = 'scatter';
+        data = {
+            datasets: [{
+                label: 'Task Scatter',
+                data: analysis3Data.points,
+                backgroundColor: 'red'
+            }]
+        };
+        options = {
+            scales: {
+                x: { title: { display: true, text: 'X' } },
+                y: { title: { display: true, text: 'Y' } }
+            }
+        };
+    }
+
+    // ✅ Render the chart (if data exists)
+    if (type && data) {
+        graphChartInstance = new Chart(document.getElementById('graphChart'), { type, data, options });
+    }
+});
+</script>
+
+
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
