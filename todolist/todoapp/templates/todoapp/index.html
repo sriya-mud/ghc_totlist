@@ -530,7 +530,7 @@
 
   <div id="graphContainer" class="table-responsive">
       <canvas id="graphChart" height="150"></canvas>
-      <canvas id="graphChart2" width="400" height="200"></canvas>
+      <canvas id="graphChart2" height="150" class="d-none mt-4"></canvas>
   </div>
   </div>
   </div>
@@ -618,9 +618,14 @@ document.getElementById('taskSelect').addEventListener('change', function() {
 
 <!-- Graphs Tab Script -->
 
+{{ analysis1_data|json_script:"analysis1-data" }}
+{{ analysis2_data|json_script:"analysis2-data" }}
+{{ analysis3_data|json_script:"analysis3-data" }}
+
 <script>
 
 let graphChartInstance = null;
+let graphChart2Instance = null;
 
 // Load data safely
 function safeParse(id) {
@@ -639,6 +644,10 @@ const analysis3Data = safeParse('analysis3-data');
 document.getElementById('graphSelect').addEventListener('change', function () {
     const graph = this.value;
     if (graphChartInstance) graphChartInstance.destroy();
+    if(graphChart2Instance) graphChart2Instance.destroy();
+
+    const ctx2 = document.getElementById('graphChart2');
+    ctx2.classList.add('d-none'); // hide by default
 
     // 👉 Call independent function for selected graph
     switch (graph) {
@@ -731,45 +740,42 @@ function renderGraph3() {
     if (!analysis3Data) return alert("Graph 3 data not found.");
 
     const ctx = document.getElementById('graphChart');
-    const data = {
+    const data1 = {
         labels: analysis3Data.labels,
-        datasets: analysis3Data.datasets.map(ds => ({
-            label: ds.label,
-            data: ds.data,
-            borderColor: getRandomColor(),
-            fill: false,
-            tension: 0.3
-        }))
+        datasets: [
+            {
+                label: 'Close',
+                data: analysis3Data.close_vs_return.close,
+                borderColor: 'red',
+                fill: false,
+                tension: 0.3
+            }
+        ]
     };
 
-    const options = {
+    const options1 = {
         responsive: true,
         plugins: {
-            title: { display: true, text: 'Daily Percentage Change Comparison of Stocks' },
+            title: { display: true, text: 'Date vs Close' },
             legend: { position: 'top' }
         },
         scales: {
             x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Daily % Change' } }
+            y: { title: { display: true, text: 'Close Price' } }
         }
     };
 
-    graphChartInstance = new Chart(ctx, { type: 'line', data, options });
+    if (graphChartInstance) graphChartInstance.destroy();
+    graphChartInstance = new Chart(ctx, { type: 'line', data:data1, options:options1 });
 
-   const ctx2 = document.getElementById('graphChart2');
-    if (!ctx2) return; // safe check
+   const closeReturn = analysis3Data.close_vs_return;
+    if (!closeReturn) return;
 
-    const closeReturn = analysis3Data.close_vs_return;
+    const ctx2 = document.getElementById('graphChart2');
+    ctx2.classList.remove('d-none'); // show only for graph3
     const data2 = {
-        labels: closeReturn.labels,
+        labels: analysis3Data.labels,
         datasets: [
-            {
-                label: 'Close',
-                data: closeReturn.close,
-                borderColor: 'blue',
-                fill: false,
-                tension: 0.3
-            },
             {
                 label: 'Close_Return(%)',
                 data: closeReturn.close_return,
@@ -779,18 +785,22 @@ function renderGraph3() {
             }
         ]
     };
+
     const options2 = {
         responsive: true,
         plugins: {
-            title: { display: true, text: 'Close vs Close_Return% ' },
+            title: { display: true, text: 'Date vs Close_Return% ' },
             legend: { position: 'top' }
         },
         scales: {
             x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Value' } }
+            y: { title: { display: true, text: 'Close Return(%)' } }
         }
     };
-    new Chart(ctx2, { type: 'line', data: data2, options: options2 });
+
+    if (graphChart2Instance) graphChart2Instance.destroy();
+    graphChart2Instance=new Chart(ctx2, { type: 'line', data: data2, options: options2 });
+  
 }
 
 
@@ -804,145 +814,6 @@ function getRandomColor() {
     return color;
 }
 
-
-/*let graphChartInstance = null;
-
-// Load JSON data safely
-let analysis1Data = {};
-let analysis2Data = {};
-let analysis3Data = {};
-
-try {
-    analysis1Data = JSON.parse(document.getElementById('analysis1-data').textContent);
-} catch (e) { console.error("Error parsing analysis1Data:", e); }
-
-try {
-    analysis2Data = JSON.parse(document.getElementById('analysis2-data').textContent);
-} catch (e) { console.error("Error parsing analysis2Data:", e); }
-
-try {
-    analysis3Data = JSON.parse(document.getElementById('analysis3-data').textContent);
-} catch (e) { console.error("Error parsing analysis3Data:", e); }
-
-document.getElementById('graphSelect').addEventListener('change', function() {
-    const graph = this.value;
-
-    if (graphChartInstance) graphChartInstance.destroy();
-
-    let type, data, options = {};
-
-    // GRAPH 1 — Close vs 7-Day MA
-    if (graph === 'graph1') {
-    try{
-    type = 'line';
-    data = {
-        labels: analysis1Data.labels,
-        datasets: [
-            {
-                label: 'Close Price',
-                data: analysis1Data.close_values,
-                borderColor: 'blue',
-                backgroundColor: 'rgba(0,0,255,0.15)',
-                fill: false,
-                tension: 0.3
-            },
-            {
-                label: '7-Day Moving Average',
-                data: analysis1Data.ma_values,
-                borderColor: 'orange',
-                backgroundColor: 'rgba(255,165,0,0.2)',
-                borderDash: [5, 5],
-                fill: false,
-                tension: 0.3
-            }
-           
-        ]
-    };
-    options = {
-        plugins: { title: { display: true, text: 'Stock Close vs 7-Day MA' } },
-        scales: {
-            x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Price' } }
-        }
-    };
-}catch(e){
-    console.error("Error setting up graph 1:", e);
-}
-}
-
-    // GRAPH 2 — MSFT Diff
-    else if (graph === 'graph2') {
-        try{
-        type = 'bar';
-        const barColors = analysis2Data.values.map(v => v >= 0 ? 'green' : 'red');
-        data = {
-            labels: analysis2Data.labels,
-            datasets: [{
-                label: 'MSFT Diff',
-                data: analysis2Data.values,
-                backgroundColor: barColors
-            }]
-        };
-        options = {
-        plugins: {
-            title: { display: true, text: 'MSFT Daily Diff' }
-        },
-        scales: {
-            y: {
-                title: { display: true, text: 'Difference' },
-                beginAtZero: true
-            },
-            x: {
-                title: { display: true, text: 'Date' }
-            }
-        }
-    };
-    }catch(e){
-    console.error("Error setting up graph 2:", e);
-}
-}
-
-    // 🟨 GRAPH 3 — Scatter Plot
-    else if (graph === 'graph3') {
-        try{
-    type = 'line';
-    data = {
-        labels: analysis3Data.labels,
-        datasets: analysis3Data.datasets.map(ds => ({
-            label: ds.label,
-            data: ds.data,
-            fill: false,
-            tension: 0.3,
-            borderWidth: 2,
-            borderColor: getRandomColor(), // helper function for distinct colors
-        }))
-    };
-    options = {
-        responsive: true,
-        plugins: {
-            title: { display: true, text: 'Daily Percentage Change Comparison of Stocks' },
-            legend: { position: 'top' }
-        },
-        scales: {
-            x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Daily % Change' } }
-        }
-    };
-}catch(e){
-    console.error("Error setting up graph 3:", e);
-}
-}
-
-function getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
-
-});*/
 
 </script>
 
