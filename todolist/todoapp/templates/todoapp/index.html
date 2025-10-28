@@ -530,6 +530,7 @@
 
   <div id="graphContainer" class="table-responsive">
       <canvas id="graphChart" height="150"></canvas>
+      <canvas id="graphChart2" width="400" height="200"></canvas>
   </div>
   </div>
   </div>
@@ -616,12 +617,199 @@ document.getElementById('taskSelect').addEventListener('change', function() {
 </script>
 
 <!-- Graphs Tab Script -->
+
 {{ analysis1_data|json_script:"analysis1-data" }}
 {{ analysis2_data|json_script:"analysis2-data" }}
 {{ analysis3_data|json_script:"analysis3-data" }}
 
 <script>
+
 let graphChartInstance = null;
+
+// Load data safely
+function safeParse(id) {
+    try {
+        return JSON.parse(document.getElementById(id).textContent);
+    } catch (e) {
+        console.warn(id + " not found or invalid:", e);
+        return null;
+    }
+}
+
+const analysis1Data = safeParse('analysis1-data');
+const analysis2Data = safeParse('analysis2-data');
+const analysis3Data = safeParse('analysis3-data');
+
+document.getElementById('graphSelect').addEventListener('change', function () {
+    const graph = this.value;
+    if (graphChartInstance) graphChartInstance.destroy();
+
+    // 👉 Call independent function for selected graph
+    switch (graph) {
+        case 'graph1':
+            renderGraph1();
+            break;
+        case 'graph2':
+            renderGraph2();
+            break;
+        case 'graph3':
+            renderGraph3();
+            break;
+        default:
+            alert("Please select a graph.");
+    }
+});
+
+function renderGraph1() {
+    if (!analysis1Data) return alert("Graph 1 data not found.");
+
+    const ctx = document.getElementById('graphChart');
+    const data = {
+        labels: analysis1Data.labels,
+        datasets: [
+            {
+                label: 'Close Price',
+                data: analysis1Data.close_values,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0,0,255,0.2)',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: '7-Day Moving Average',
+                data: analysis1Data.ma_values,
+                borderColor: 'orange',
+                backgroundColor: 'rgba(255,165,0,0.2)',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.3
+            }
+        ]
+    };
+
+    const options = {
+        responsive: true,
+        plugins: {
+            title: { display: true, text: 'Stock Close vs 7-Day MA' },
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: 'Price' } }
+        }
+    };
+
+    graphChartInstance = new Chart(ctx, { type: 'line', data, options });
+}
+
+function renderGraph2() {
+    if (!analysis2Data) return alert("Graph 2 data not found.");
+
+    const ctx = document.getElementById('graphChart');
+    const colors = analysis2Data.values.map(v => (v >= 0 ? 'green' : 'red'));
+
+    const data = {
+        labels: analysis2Data.labels,
+        datasets: [{
+            label: 'MSFT Diff',
+            data: analysis2Data.values,
+            backgroundColor: colors
+        }]
+    };
+    const options = {
+        responsive: true,
+        plugins: {
+            title: { display: true, text: 'MSFT Diff' },
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: 'Difference' } }
+        }
+    };
+
+    graphChartInstance = new Chart(ctx, { type: 'bar', data, options });
+}
+
+function renderGraph3() {
+    if (!analysis3Data) return alert("Graph 3 data not found.");
+
+    const ctx = document.getElementById('graphChart');
+    const data = {
+        labels: analysis3Data.labels,
+        datasets: analysis3Data.datasets.map(ds => ({
+            label: ds.label,
+            data: ds.data,
+            borderColor: getRandomColor(),
+            fill: false,
+            tension: 0.3
+        }))
+    };
+
+    const options = {
+        responsive: true,
+        plugins: {
+            title: { display: true, text: 'Daily Percentage Change Comparison of Stocks' },
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: 'Daily % Change' } }
+        }
+    };
+
+    graphChartInstance = new Chart(ctx, { type: 'line', data, options });
+
+   const ctx2 = document.getElementById('graphChart2');
+    if (!ctx2) return; // safe check
+
+    const closeReturn = analysis3Data.close_vs_return;
+    const data2 = {
+        labels: closeReturn.labels,
+        datasets: [
+            {
+                label: 'Close',
+                data: closeReturn.close,
+                borderColor: 'blue',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Close_Return(%)',
+                data: closeReturn.close_return,
+                borderColor: 'green',
+                fill: false,
+                tension: 0.3
+            }
+        ]
+    };
+    const options2 = {
+        responsive: true,
+        plugins: {
+            title: { display: true, text: 'Close vs Close_Return% ' },
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: 'Value' } }
+        }
+    };
+    new Chart(ctx2, { type: 'line', data: data2, options: options2 });
+}
+
+
+
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+
+/*let graphChartInstance = null;
 
 // Load JSON data safely
 let analysis1Data = {};
@@ -649,6 +837,7 @@ document.getElementById('graphSelect').addEventListener('change', function() {
 
     // GRAPH 1 — Close vs 7-Day MA
     if (graph === 'graph1') {
+    try{
     type = 'line';
     data = {
         labels: analysis1Data.labels,
@@ -680,10 +869,14 @@ document.getElementById('graphSelect').addEventListener('change', function() {
             y: { title: { display: true, text: 'Price' } }
         }
     };
+}catch(e){
+    console.error("Error setting up graph 1:", e);
+}
 }
 
     // GRAPH 2 — MSFT Diff
     else if (graph === 'graph2') {
+        try{
         type = 'bar';
         const barColors = analysis2Data.values.map(v => v >= 0 ? 'green' : 'red');
         data = {
@@ -708,36 +901,54 @@ document.getElementById('graphSelect').addEventListener('change', function() {
             }
         }
     };
-    }
+    }catch(e){
+    console.error("Error setting up graph 2:", e);
+}
+}
 
     // 🟨 GRAPH 3 — Scatter Plot
     else if (graph === 'graph3') {
-        type = 'scatter';
-        data = {
-            datasets: [{
-                label: 'Task Scatter',
-                data: analysis3Data.points,
-                backgroundColor: 'red'
-            }]
-        };
-        options = {
-            scales: {
-                x: { title: { display: true, text: 'X' } },
-                y: { title: { display: true, text: 'Y' } }
-            }
-        };
-    }
+        try{
+    type = 'line';
+    data = {
+        labels: analysis3Data.labels,
+        datasets: analysis3Data.datasets.map(ds => ({
+            label: ds.label,
+            data: ds.data,
+            fill: false,
+            tension: 0.3,
+            borderWidth: 2,
+            borderColor: getRandomColor(), // helper function for distinct colors
+        }))
+    };
+    options = {
+        responsive: true,
+        plugins: {
+            title: { display: true, text: 'Daily Percentage Change Comparison of Stocks' },
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: 'Daily % Change' } }
+        }
+    };
+}catch(e){
+    console.error("Error setting up graph 3:", e);
+}
+}
 
-    // ✅ Render the chart (if data exists)
-    if (type && data) {
-        graphChartInstance = new Chart(document.getElementById('graphChart'), { type, data, options });
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
     }
-});
+    return color;
+}
+
+});*/
+
 </script>
-
-
-
-
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

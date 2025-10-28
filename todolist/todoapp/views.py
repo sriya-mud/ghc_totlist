@@ -10,7 +10,7 @@ from django.conf import settings
 import pandas as pd
 
 def stock_data_analysis_1():
-    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'combined_nifty.csv')
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'C:/Users/sriya.m/Downloads/combined_nifty.csv')
     print("CSV Path (Analysis 1):", csv_path)
 
     if os.path.exists(csv_path):
@@ -34,13 +34,13 @@ def stock_data_analysis_1():
 
 
 def stock_data_analysis_2():
-    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'MSFT_combined.csv')
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'C:/Users/sriya.m/Downloads/MSFT_processed.csv')
     print("CSV Path (Analysis 2):", csv_path)
 
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path)
         print(df.head(40))
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
         df = df.dropna(subset=['Date', 'Diff'])
         return {
             "labels": df['Date'].dt.strftime('%Y-%m-%d').tolist(),
@@ -51,18 +51,43 @@ def stock_data_analysis_2():
 
 
 def stock_data_analysis_3():
-    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'data.csv')
+    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'C:/Users/sriya.m/Downloads/graph_used_columns.csv')
     print("CSV Path (Analysis 3):", csv_path)
 
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path)
-        print(df.head(35))
-        df = df.dropna(subset=['x', 'y'])
+        print(df.head(30))
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df = df.dropna(subset=['Date'])
+
+         # Extract only the return columns
+        return_columns = [
+            'id_Return(%)', 'Open_Return(%)', 'High_Return(%)',
+            'Low_Return(%)', 'Close_Return(%)', 'PreviousClose_Return(%)'
+        ]
+
+        # Keep only columns that exist in CSV
+        existing_cols = [col for col in return_columns if col in df.columns]
+
+        if 'Close' in df.columns and 'Close_Return(%)' in df.columns:
+            close_vs_return = {
+                "labels": df['Date'].dt.strftime('%Y-%m-%d %H:%M').tolist(),
+                "close": df['Close'].fillna(0).round(2).tolist(),
+                "close_return": df['Close_Return(%)'].fillna(0).round(2).tolist()
+            }
+        else:
+            close_vs_return = {"labels": [], "close": [], "close_return": []}
+
         return {
-            "points": [{"x": float(x), "y": float(y)} for x, y in zip(df['x'], df['y'])]
+            "labels": df['Date'].dt.strftime('%Y-%m-%d %H:%M').tolist(),
+            "datasets": [
+                {"label": col, "data": df[col].fillna(0).round(2).tolist()}
+                for col in existing_cols
+            ],
+            "close_vs_return": close_vs_return
         }
 
-    return {"points": []}
+    return {"labels": [], "datasets": [],  "close_vs_return" : {"labels": [], "close": [], "close_return": []}}
 
 
 
