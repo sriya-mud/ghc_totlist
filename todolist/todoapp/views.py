@@ -51,43 +51,39 @@ def stock_data_analysis_2():
 
 
 def stock_data_analysis_3():
-    csv_path = os.path.join(settings.BASE_DIR, 'todoapp', 'static', 'C:/Users/sriya.m/Downloads/graph_used_columns.csv')
+    #  Use direct CSV path (no os.path.join with drive letter)
+    csv_path = r'C:/Users/sriya.m/Downloads/graph_used_columns.csv'
     print("CSV Path (Analysis 3):", csv_path)
 
-    if os.path.exists(csv_path):
-        df = pd.read_csv(csv_path)
-        print(df.head(30))
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-        df = df.dropna(subset=['Date'])
+    if not os.path.exists(csv_path):
+        print("File not found:", csv_path)
+        return {"labels": [], "close_vs_return": {"labels": [], "close": [], "close_return": []}}
 
-         # Extract only the return columns
-        return_columns = [
-            'id_Return(%)', 'Open_Return(%)', 'High_Return(%)',
-            'Low_Return(%)', 'Close_Return(%)', 'PreviousClose_Return(%)'
-        ]
+    df = pd.read_csv(csv_path)
+    print(df.head(30))
 
-        # Keep only columns that exist in CSV
-        existing_cols = [col for col in return_columns if col in df.columns]
+    # Clean column names
+    df.columns = df.columns.str.strip()
 
-        if 'Close' in df.columns and 'Close_Return(%)' in df.columns:
-            close_vs_return = {
-                "labels": df['Date'].dt.strftime('%Y-%m-%d %H:%M').tolist(),
-                "close": df['Close'].fillna(0).round(2).tolist(),
-                "close_return": df['Close_Return(%)'].fillna(0).round(2).tolist()
-            }
-        else:
-            close_vs_return = {"labels": [], "close": [], "close_return": []}
+    #  Convert date column
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
+    df = df.dropna(subset=['Date'])
 
-        return {
-            "labels": df['Date'].dt.strftime('%Y-%m-%d %H:%M').tolist(),
-            "datasets": [
-                {"label": col, "data": df[col].fillna(0).round(2).tolist()}
-                for col in existing_cols
-            ],
-            "close_vs_return": close_vs_return
-        }
+    # Handle Close and Close_Return(%) columns safely
+    if 'Close' not in df.columns or 'Close_Return(%)' not in df.columns:
+        print("Required columns missing in CSV")
+        return {"labels": [], "close_vs_return": {"labels": [], "close": [], "close_return": []}}
 
-    return {"labels": [], "datasets": [],  "close_vs_return" : {"labels": [], "close": [], "close_return": []}}
+    close_vs_return = {
+        "labels": df['Date'].dt.strftime('%Y-%m-%d').tolist(),
+        "close": df['Close'].fillna(0).round(2).tolist(),
+        "close_return": df['Close_Return(%)'].fillna(0).round(2).tolist()
+    }
+
+    return {
+        "labels": close_vs_return["labels"],
+        "close_vs_return": close_vs_return
+    }
 
 
 

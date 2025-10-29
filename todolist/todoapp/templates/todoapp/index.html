@@ -739,14 +739,16 @@ function renderGraph2() {
 function renderGraph3() {
     if (!analysis3Data) return alert("Graph 3 data not found.");
 
+    const closeData=analysis3Data.close_vs_return;
+    if (!closeData || !closeData.labels.length) return alert("No data available for Graph 3.");
     const ctx = document.getElementById('graphChart');
     const data1 = {
         labels: analysis3Data.labels,
         datasets: [
             {
                 label: 'Close',
-                data: analysis3Data.close_vs_return.close,
-                borderColor: 'red',
+                data: closeData.close,
+                borderColor: 'blue',
                 fill: false,
                 tension: 0.3
             }
@@ -768,18 +770,19 @@ function renderGraph3() {
     if (graphChartInstance) graphChartInstance.destroy();
     graphChartInstance = new Chart(ctx, { type: 'line', data:data1, options:options1 });
 
-   const closeReturn = analysis3Data.close_vs_return;
-    if (!closeReturn) return;
+   
 
     const ctx2 = document.getElementById('graphChart2');
     ctx2.classList.remove('d-none'); // show only for graph3
+    const colors = closeData.close_return.map(v => (v >= 0 ? 'green' : 'red'));
     const data2 = {
         labels: analysis3Data.labels,
         datasets: [
             {
                 label: 'Close_Return(%)',
-                data: closeReturn.close_return,
+                data: closeData.close_return,
                 borderColor: 'green',
+                backgroundColor: colors,
                 fill: false,
                 tension: 0.3
             }
@@ -799,7 +802,7 @@ function renderGraph3() {
     };
 
     if (graphChart2Instance) graphChart2Instance.destroy();
-    graphChart2Instance=new Chart(ctx2, { type: 'line', data: data2, options: options2 });
+    graphChart2Instance=new Chart(ctx2, { type: 'bar', data: data2, options: options2 });
   
 }
 
